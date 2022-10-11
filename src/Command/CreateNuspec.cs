@@ -102,7 +102,7 @@ namespace DXLocalizationNugetGenerator.Command
         string[] FindNugetPackages(string nugetPackagesPath)
         {
             string pattern = "*." + DEFAULT_INPUT_LANGUAGE + ".*" + ".nupkg";
-            string[] files = Directory.GetFiles(nugetPackagesPath, pattern);
+            string[] files = Directory.GetFiles(nugetPackagesPath, pattern, SearchOption.AllDirectories);
 
             return files;
         }
