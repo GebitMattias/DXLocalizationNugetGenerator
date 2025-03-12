@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using static DXLocalizationNugetGenerator.Model.Data;
@@ -176,20 +177,23 @@ namespace DXLocalizationNugetGenerator.Command
                 }
                 
                 doc.InnerXml = ReplaceLanguage(doc.InnerXml, LanguageCode);
-                doc.InnerXml = FixNet50(doc.InnerXml);
+                doc.InnerXml = this.FixMissingPlatform(doc.InnerXml);
                 doc.Save(nuspecFileLocalizedPath);
             }
         }
 
-        private string FixNet50(string text)
+        private string FixMissingPlatform(string text)
         {
-            text = text.Replace("/net5.0-windows/", "/net5.0-windows7.0/");
-            text = text.Replace("\"net5.0-windows\"", "\"net5.0-windows7.0\"");
+            string Replacement(Match x)
+            {
+                var start = x.Groups["Start"].ValueSpan;
+                var end = x.Groups["End"].ValueSpan;
+                var version = x.Groups["Version"].ValueSpan;
 
-            text = text.Replace("/net6.0-windows/", "/net6.0-windows7.0/");
-            text = text.Replace("\"net6.0-windows\"", "\"net6.0-windows7.0\"");
+                return $"{start}net{version}-windows7.0{end}";
+            }
 
-            return text;
+            return Regex.Replace(text, @"(?<Start>/|"")net(?<Version>\d\.0)-windows(?<End>/|"")", Replacement);
         }
 
         string ReplaceLanguage(string text, string language)
